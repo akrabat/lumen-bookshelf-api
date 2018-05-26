@@ -19,10 +19,5 @@ $router->get('/ping', function () {
     return response()->json(['ack' => time()]);
 });
 
-$router->post('/books', function () use ($router) {
-    return "test";
-});
-
-$router->get('/books', function () use ($router) {
-    return "test";
-});
+$router->get('/authors', 'AuthorController@list');
+$router->get('/authors/{id:\d+}', 'AuthorController@show');
