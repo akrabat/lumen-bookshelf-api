@@ -19,5 +19,27 @@ $router->get('/ping', function () {
     return response()->json(['ack' => time()]);
 });
 
-$router->get('/authors', 'AuthorController@list');
-$router->get('/authors/{id:\d+}', 'AuthorController@show');
+$router->get('/authors', [
+    'as' => 'author.list',
+    'uses' => 'AuthorController@list'
+]);
+
+$router->get('/authors/{id:\d+}', [
+    'as' => 'author.list',
+    'uses' => 'AuthorController@show'
+]);
+
+$router->post('/authors', [
+    'as' => 'author.add',
+    'uses' => 'AuthorController@add'
+]);
+
+$router->put('/authors/{id:\d+}', [
+    'as' => 'author.update',
+    'uses' => 'AuthorController@update'
+]);
+
+$router->delete('/authors/{id:\d+}', [
+    'as' => 'author.delete',
+    'uses' => 'AuthorController@delete'
+]);
