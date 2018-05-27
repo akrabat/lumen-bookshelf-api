@@ -3,11 +3,15 @@
 namespace App\Exceptions;
 
 use Exception;
-use Illuminate\Validation\ValidationException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Http\Response;
+use Illuminate\Validation\ValidationException;
 use Laravel\Lumen\Exceptions\Handler as ExceptionHandler;
+use Symfony\Component\Debug\Exception\FlattenException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class Handler extends ExceptionHandler
 {
@@ -36,6 +40,20 @@ class Handler extends ExceptionHandler
         parent::report($e);
     }
 
+
+    private function getStatusCodeFromException(Exception $e)
+    {
+        if ($e instanceof ModelNotFoundException) {
+            $fe = FlattenException::create($e, 404);
+        } elseif ($e instanceof AuthorizationException) {
+            $fe = FlattenException::create($e, 403);
+        } else {
+            $fe = FlattenException::create($e);
+        }
+
+        return $fe->getStatusCode();
+    }
+
     /**
      * Render an exception into an HTTP response.
      *
@@ -45,6 +63,20 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Exception $e)
     {
-        return parent::render($request, $e);
+        if ($e instanceof HttpResponseException) {
+            return $e->getResponse();
+        } elseif ($e instanceof ValidationException && $e->getResponse()) {
+            return $e->getResponse();
+        }
+
+        $statusCode = $this->getStatusCodeFromException($e);
+        $error['error'] = Response::$statusTexts[$statusCode];
+        if (env('APP_DEBUG')) {
+              $error['message'] = $e->getMessage();
+              $error['file'] = $e->getFile() . ':' . $e->getLine();
+              $error['trace'] = explode("\n", $e->getTraceAsString());
+        }
+
+        return response()->json($error, $statusCode, [], JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);
     }
 }
