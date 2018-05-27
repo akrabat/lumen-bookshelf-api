@@ -1,7 +1,6 @@
 {
-    "name": "laravel/lumen",
-    "description": "The Laravel Lumen Framework.",
-    "keywords": ["framework", "laravel", "lumen"],
+    "name": "akrabat/lumen-bookshelf-api",
+    "description": "A simple Lumen API",
     "license": "MIT",
     "type": "project",
     "require": {
