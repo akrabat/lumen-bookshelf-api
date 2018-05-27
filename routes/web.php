@@ -25,7 +25,7 @@ $router->get('/authors', [
 ]);
 
 $router->get('/authors/{id:\d+}', [
-    'as' => 'author.list',
+    'as' => 'author.show',
     'uses' => 'AuthorController@show'
 ]);
 

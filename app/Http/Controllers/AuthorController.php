@@ -3,24 +3,41 @@
 namespace App\Http\Controllers;
 
 use App\Author;
+use App\Transformer\AuthorTransformer;
 use Illuminate\Http\Request;
+use League\Fractal\Manager;
+use League\Fractal\Resource\Collection;
+use League\Fractal\Resource\Item;
 use Symfony\Component\HttpFoundation\Response;
+use League\Fractal\Serializer\JsonApiSerializer;
 
 class AuthorController extends Controller
 {
-    public function list() : Response
+    public function list(Manager $fractal) : Response
     {
         $authors = Author::all();
-        return response()->json($authors, 200);
+
+        $resource = new Collection($authors, new AuthorTransformer, 'authors');
+        return response()->json(
+            $fractal->createData($resource)->toArray(),
+            200,
+            ['content-type' => 'application/vnd.api+json']
+        );
     }
 
-    public function show(int $id) : Response
+    public function show(Manager $fractal, int $id) : Response
     {
         $author = Author::findOrFail($id);
-        return response()->json($author, 200);
+
+        $resource = new Item($author, new AuthorTransformer, 'authors');
+        return response()->json(
+            $fractal->createData($resource)->toArray(),
+            200,
+            ['content-type' => 'application/vnd.api+json']
+        );
     }
 
-    public function add(Request $request) : Response
+    public function add(Manager $fractal, Request $request) : Response
     {
         $data = $this->validate($request, [
             'name' => 'required|max:100',
@@ -30,7 +47,12 @@ class AuthorController extends Controller
         $author = Author::create($data);
         $author->save();
 
-        return response()->json($author, 201);
+        $resource = new Item($author, new AuthorTransformer, 'authors');
+        return response()->json(
+            $fractal->createData($resource)->toArray(),
+            201,
+            ['content-type' => 'application/vnd.api+json']
+        );
     }
 
     public function update(Request $request, $id) : Response
@@ -44,7 +66,12 @@ class AuthorController extends Controller
         $author->fill($data);
         $author->save();
 
-        return response()->json($author, 200);
+        $resource = new Item($author, new AuthorTransformer, 'authors');
+        return response()->json(
+            $fractal->createData($resource)->toArray(),
+            200,
+            ['content-type' => 'application/vnd.api+json']
+        );
     }
 
     public function delete($id) : Response
